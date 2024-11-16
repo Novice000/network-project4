@@ -1,5 +1,49 @@
 {% extends "network/layout.html" %}
-
 {% block body %}
-    TODO
+<div>
+  <div id="post">
+    {% for post in posts%}
+    <div>
+      <a href="{% url 'profile' post.user.id %}">
+        <div>post.user.username</div>
+      </a>
+      <div>{{ post.title}}</div>
+      <div>{{ post.post}}</div>
+      <div>created: {{ post.created_at }}</div>
+      <div>last updated at: {{ updated at }}</div>
+      <div>
+        <div>{{ post.likes }}</div>
+
+        <div>
+          <button id="like_button">Like</button>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+    <div class="pagination">
+      <span class="step-links">
+        {% if page_obj.has_previous %}
+        <a href="?page=1">&laquo; first</a>
+        <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+          Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+        </span>
+
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
+      </span>
+    </div>
+  </div>
+  <div id="new post">
+    <h2>New Post</h2>
+    <form action="{% url 'post' %}">
+      <div>{{ form }} {% csrf_token %}</div>
+      <div><input type="submit" value="Post" /></div>
+    </form>
+  </div>
+</div>
 {% endblock %}

@@ -1,0 +1,82 @@
+{% extends "network/layout.html" %} {% block body %}
+<div>
+  <div>
+    {% if follows %}
+    <a href="{% url 'follow'  %}">
+      <button>Unfollow</button>
+    </a>
+    {% else %}
+    <a href="{% url 'unfollow' %}">
+      <button>Follow</button>
+    </a>
+    {% endif %}
+  </div>
+  <div id="post">
+    {% for post in posts%}
+    <div>
+      <div>{{ post.title}}</div>
+      <div>{{ post.post}}</div>
+      <div>
+        <div>{{ post.likes }}</div>
+        <div>created: {{ post.created_at }}</div>
+        <div>last updated at: {{ updated at }}</div>
+        <div>
+          <button id="like_button">Like</button>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+    <div class="pagination">
+      <span class="step-links">
+        {% if posts.has_previous %}
+        <a href="?posts_page_number=1">&laquo; first</a>
+        <a href="?posts_page_number={{ posts.previous_page_number }}"
+          >previous</a
+        >
+        {% endif %}
+
+        <span class="current">
+          Page {{ posts.number }} of {{ posts.paginator.num_pages }}.
+        </span>
+
+        {% if posts.has_next %}
+        <a href="?posts_page_number={{ posts.next_page_number }}">next</a>
+        <a href="?posts_page_number={{ posts.paginator.num_pages }}"
+          >last &raquo;</a
+        >
+        {% endif %}
+      </span>
+    </div>
+  </div>
+  <div id="followers">
+    {% for follower in followes %}
+    <div>
+      <a href="{{% url 'profile' follower.follower.id %}}">
+        <div>{{ follower.following.username }}</div>
+      </a>
+      <div class="pagination">
+        <span class="step-links">
+          {% if posts.has_previous %}
+          <a href="?followers_page_number=1">&laquo; first</a>
+          <a href="?followers_page_number={{ posts.previous_page_number }}"
+            >previous</a
+          >
+          {% endif %}
+
+          <span class="current">
+            Page {{ posts.number }} of {{ posts.paginator.num_pages }}.
+          </span>
+
+          {% if posts.has_next %}
+          <a href="?followers_page_number={{ posts.next_page_number }}">next</a>
+          <a href="?followers_page_number={{ posts.paginator.num_pages }}"
+            >last &raquo;</a
+          >
+          {% endif %}
+        </span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

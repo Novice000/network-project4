@@ -11,7 +11,14 @@ from .models import Followers, User, Posts, Likes
 
 
 def index(request) -> HttpResponse:
-    return render(request, "network/index.html")
+    posts = Posts.objects.all()
+    posts = Paginator(posts,10)
+    page_number = request.GET.get("page")
+    posts = posts.get_page(page_number)
+    return render(request, "network/index.html", {
+        "posts": posts,
+        "form": PostForm()
+    })
 
 
 def login_view(request) -> HttpResponseRedirect | HttpResponse:
@@ -65,19 +72,22 @@ def register(request) -> HttpResponse | HttpResponseRedirect:
     else:
         return render(request, "network/register.html")
 
-@login_required
-def posts(request) -> HttpResponse:
-    posts = Posts.objects.all()
-    return render("network/index.html", {
-        "posts": posts
-    })
+# @login_required
+# def posts(request) -> HttpResponse:
+#     posts = Posts.objects.all()
+#     return render("network/index.html", {
+#         "posts": posts
+#     })
 
 @login_required   
 def create(request):
     if request.method == "POST":
         form = PostForm(request.POST)
         if form.is_valid():
-            form.save()
+            post = form.save(commit = False)
+            post.user = request.user
+            post.save()
+            
     elif request.method == "GET":
         return redirect(reverse("index"))
     
@@ -96,24 +106,33 @@ def profile(request):
         return redirect(reverse("index"))
     
     id  = request.GET.get("id", None)
+    
     if id is None:
         return redirect(reverse("index"))
-    
     try:
         user = User.objects.prefetch_related("posts","followers").get(id = id)
     except User.DoesNotExist:
         return redirect(reverse("index"))
     
     posts = Paginator(user.posts.all().order_by("-created_at"),10)
-    followers = user.followers.all()
+    posts_page_number = request.GET.get("posts_page_number",None)
+    if posts_page_number != None:
+        posts = posts.get_page(posts_page_number)
+    followers = Paginator(user.followers.all(), 10)
+    followers_page_number = request.GET.get("followers_page_number",None)
+    if followers_page_number != None:
+        followers = followers.get_page(followers_page_number)
+    
+    follows = Followers.objects.filter(user= User.objects.get(pk=id), follower = request.user).exists()
     
     context = {
         "user": user,
         "posts": posts,
-        "followers": followers
+        "followers": followers,
+        "follows": follows
     }
     
-    return render( "", context)
+    return render(request, "network/profile.html", context)
 
 def like_unlike(request):
     post_id = request.GET.get("id", None)
@@ -134,3 +153,35 @@ def like_unlike(request):
             "like_count": post.likes,
             "already_liked": True
         })
+
+@login_required
+def following(request):
+    if request.method == "GET":
+        following = Followers.objects.filter(follower = request.user)
+        posts = Posts.object.filter(user__in = following)
+        posts = Paginator(posts, 10)
+        posts_page_number = request.GET.get("posts_page_number",None)
+    if posts_page_number != None:
+        posts = posts.get_page(posts_page_number)
+        form = PostForm()
+        return render(request, "network/index.html", {
+            "post":posts,
+            "form":form
+        })
+    else:
+        return redirect(reverse("following"))
+    
+@login_required
+def follow(request, id):
+    user = User.objects.get(pk=id)
+    follower = request.user
+    Followers.object.create(user=user, follower= follower)
+    return redirect(reverse("profile", args = [id]))
+
+@login_required
+def unfollow(request, id):
+    user = User.objects.get(pk=id)
+    follower = request.user
+    item = Followers.object.filter(user=user, follower= follower)
+    item.delete()
+    return redirect(reverse("profile", args = [id]))
