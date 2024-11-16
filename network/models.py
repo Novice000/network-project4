@@ -29,7 +29,7 @@ class Posts(models.Model):
         verbose_name = "Post"
         verbose_name_plural = "Posts"
         
-    user = models.ForeignKeyField(User, on_delete= models.CASCADE, related_name="posts")
+    user = models.ForeignKey(User, on_delete= models.CASCADE, related_name="posts")
     post_title = models.CharField(max_length=30)
     post = models.CharField(max_length = 400)
     likes = models.IntegerField(default=0)

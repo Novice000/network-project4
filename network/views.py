@@ -13,7 +13,7 @@ from .models import Followers, User, Posts, Likes
 def index(request) -> HttpResponse:
     posts = Posts.objects.all()
     posts = Paginator(posts,10)
-    page_number = request.GET.get("page")
+    page_number = request.GET.get("page",1)
     posts = posts.get_page(page_number)
     return render(request, "network/index.html", {
         "posts": posts,
@@ -115,13 +115,11 @@ def profile(request):
         return redirect(reverse("index"))
     
     posts = Paginator(user.posts.all().order_by("-created_at"),10)
-    posts_page_number = request.GET.get("posts_page_number",None)
-    if posts_page_number != None:
-        posts = posts.get_page(posts_page_number)
+    posts_page_number = request.GET.get("posts_page_number",1)
+    posts = posts.get_page(posts_page_number)
     followers = Paginator(user.followers.all(), 10)
-    followers_page_number = request.GET.get("followers_page_number",None)
-    if followers_page_number != None:
-        followers = followers.get_page(followers_page_number)
+    followers_page_number = request.GET.get("followers_page_number",1)
+    followers = followers.get_page(followers_page_number)
     
     follows = Followers.objects.filter(user= User.objects.get(pk=id), follower = request.user).exists()
     
@@ -157,15 +155,14 @@ def like_unlike(request):
 @login_required
 def following(request):
     if request.method == "GET":
-        following = Followers.objects.filter(follower = request.user)
-        posts = Posts.object.filter(user__in = following)
+        following = Followers.objects.filter(follower = request.user).values_list("user",flat=True)
+        posts = Posts.objects.filter(user__in = following)
         posts = Paginator(posts, 10)
-        posts_page_number = request.GET.get("posts_page_number",None)
-    if posts_page_number != None:
+        posts_page_number = request.GET.get("page",1)
         posts = posts.get_page(posts_page_number)
         form = PostForm()
         return render(request, "network/index.html", {
-            "post":posts,
+            "posts":posts,
             "form":form
         })
     else:
