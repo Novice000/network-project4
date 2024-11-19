@@ -1,67 +1,61 @@
-{% extends "network/layout.html" %} {% block body %}
-<div>
-  <div>
-    {% if follows %}
-    <a href="{% url 'follow'  %}">
-      <button>Unfollow</button>
-    </a>
-    {% else %}
-    <a href="{% url 'unfollow' %}">
-      <button>Follow</button>
-    </a>
-    {% endif %}
-  </div>
-  <div id="post">
-    {% for post in posts%}
+{% extends "network/layout.html" %}
+
+{% block body %}
+<div class="container main-profile-container">
+  <div class="profile-header">
+    <h2>{{ user_profile.username }}</h2>
     <div>
-      <div>{{ post.title}}</div>
-      <div>{{ post.post}}</div>
-      <div>
-        <div>{{ post.likes }}</div>
-        <div>created: {{ post.created_at }}</div>
-        <div>last updated at: {{ post.updated_at }}</div>
-        <div>
-          <button id="like_button">Like</button>
-        </div>
+      {% if user.username != user_profile.username %}
+        {% if follows %}
+          <a href="{% url 'unfollow' user_profile.id %}">
+            <button class="btn btn-danger">Unfollow</button>
+          </a>
+        {% else %}
+          <a href="{% url 'follow' user_profile.id %}">
+            <button class="btn btn-primary">Follow</button>
+          </a>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Main Content Layout -->
+  <div class="content-layout container gap-4">
+    
+    <!-- User Posts Section (Left) -->
+    <div class="post-section flex-grow-1">
+      <h3>Posts</h3>
+
+      <div class="row row-cols-2 row-cols-md-2">
+        {% for post in posts %}
+          <div class="post-item">
+            <h4>{{ post.post_title }}</h4>
+            <p>{{ post.post }}</p>
+            <div class="post-meta">
+              <span id="like-count-{{ post.id }}">{{ post.like_count }}</span> Likes
+              <br> Created: {{ post.created_at }}
+              <br> Last updated: {{ post.updated_at }}
+            </div>
+            <div class="post-utils">
+              {% if post.liked_by_user %}
+                <button class="btn btn-secondary like_button" value="unlike" data-id="{{ post.id }}">Unlike</button>
+              {% else %}
+                <button class="btn btn-primary like_button" value="like" data-id="{{ post.id }}">Like</button>
+              {% endif %}
+              {% if user.username == post.user.username %}
+                <button class="btn btn-primary edit-button" data-id="{{ post.id }}">Edit</button>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
       </div>
-    </div>
-    {% endfor %}
-    <div class="pagination">
-      <span class="step-links">
-        {% if posts.has_previous %}
-        <a href="?posts_page_number=1">&laquo; first</a>
-        <a href="?posts_page_number={{ posts.previous_page_number }}"
-          >previous</a
-        >
-        {% endif %}
 
-        <span class="current">
-          Page {{ posts.number }} of {{ posts.paginator.num_pages }}.
-        </span>
-
-        {% if posts.has_next %}
-        <a href="?posts_page_number={{ posts.next_page_number }}">next</a>
-        <a href="?posts_page_number={{ posts.paginator.num_pages }}"
-          >last &raquo;</a
-        >
-        {% endif %}
-      </span>
-    </div>
-  </div>
-  <div id="followers">
-    {% for follower in followes %}
-    <div>
-      <a href="{{% url 'profile' follower.follower.id %}}">
-        <div>{{ follower.following.username }}</div>
-        <div>{{ follower.following.email }}</div>
-      </a>
+      <!-- Pagination for Posts -->
       <div class="pagination">
         <span class="step-links">
           {% if posts.has_previous %}
-          <a href="?followers_page_number=1">&laquo; first</a>
-          <a href="?followers_page_number={{ posts.previous_page_number }}"
-            >previous</a
-          >
+            <a href="?posts_page_number=1">&laquo; first</a>
+            <a href="?posts_page_number={{ posts.previous_page_number }}">previous</a>
           {% endif %}
 
           <span class="current">
@@ -69,15 +63,62 @@
           </span>
 
           {% if posts.has_next %}
-          <a href="?followers_page_number={{ posts.next_page_number }}">next</a>
-          <a href="?followers_page_number={{ posts.paginator.num_pages }}"
-            >last &raquo;</a
-          >
+            <a href="?posts_page_number={{ posts.next_page_number }}">next</a>
+            <a href="?posts_page_number={{ posts.paginator.num_pages }}">last &raquo;</a>
           {% endif %}
         </span>
       </div>
     </div>
-    {% endfor %}
+
+    <!-- Followers Section (Right) -->
+    <div class="followers-section">
+      <h3>Followers</h3>
+      {% for follower in followers %}
+        <div class="follower-item">
+          <a href="{% url 'profile' follower.follower.id %}">
+            <strong>{{ follower.follower.username }}</strong>
+          </a>
+          <div>{{ follower.follower.email }}</div>
+        </div>
+      {% endfor %}
+
+      <!-- Pagination for Followers -->
+      <div class="pagination">
+        <span class="step-links">
+          {% if followers.has_previous %}
+            <a href="?followers_page_number=1">&laquo; first</a>
+            <a href="?followers_page_number={{ followers.previous_page_number }}">previous</a>
+          {% endif %}
+
+          <span class="current">
+            Page {{ followers.number }} of {{ followers.paginator.num_pages }}.
+          </span>
+
+          {% if followers.has_next %}
+            <a href="?followers_page_number={{ followers.next_page_number }}">next</a>
+            <a href="?followers_page_number={{ followers.paginator.num_pages }}">last &raquo;</a>
+          {% endif %}
+        </span>
+      </div>
+    </div>
+  </div>
+
+   <!-- New Post Form -->
+   <div class="new-post w-100">
+    <form action="{% url 'post' %}" method="post">
+      <div>
+        <label for="post_title"> {{ form.post_title_label }}</label>
+        {{ form.post_title }}
+      </div>
+      {% csrf_token %}
+      <div>
+        <label for="post"> {{ form.post_label }} </label>
+        {{ form.post }}
+      </div>
+      <div>
+        <input type="submit" class="btn btn-primary" value="Post" id="submit" />
+      </div>
+    </form>
   </div>
 </div>
 {% endblock %}

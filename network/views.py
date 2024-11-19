@@ -6,19 +6,26 @@ from django.urls import reverse
 from .forms import PostForm
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+import json
+from django.views.decorators.csrf import csrf_exempt
 
 from .models import Followers, User, Posts, Likes
 
 
 def index(request) -> HttpResponse:
-    posts = Posts.objects.all()
-    posts = Paginator(posts,10)
-    page_number = request.GET.get("page",1)
+    posts = Posts.objects.all().order_by("-created_at")
+    if request.user.is_authenticated:
+        for post in posts:
+            post.liked_by_user = post.likes.filter(user=request.user).exists()  # Corrected `like` to `likes`
+
+    posts = Paginator(posts, 10)
+    page_number = request.GET.get("page", 1)
     posts = posts.get_page(page_number)
     return render(request, "network/index.html", {
         "posts": posts,
         "form": PostForm()
     })
+
 
 
 def login_view(request) -> HttpResponseRedirect | HttpResponse:
@@ -87,76 +94,92 @@ def create(request):
             post = form.save(commit = False)
             post.user = request.user
             post.save()
+            return redirect(reverse("index"))
             
     elif request.method == "GET":
         return redirect(reverse("index"))
-    
+ 
+ 
+@login_required
+@csrf_exempt   
 def update(request, id):
     if request.method == "POST":
         post = Posts.objects.get(pk=int(id))
         if post.user == request.user:
-            form = PostForm(request.POST, instance=post)
+            data = json.loads(request.body)
+            form = PostForm(data, instance=post)
             if form.is_valid():
                 form.save()
+                return JsonResponse({"message":"successfully editted the message"}, status = 302)
         elif request.method == "GET":
-            return redirect(reverse("index"))   
+            return JsonResponse({"message":"successfully editted the message"}, status = 400)   
     
-def profile(request):
-    if not request.method == "GET":
-        return redirect(reverse("index"))
-    
-    id  = request.GET.get("id", None)
-    
-    if id is None:
-        return redirect(reverse("index"))
+def profile(request, id):
     try:
-        user = User.objects.prefetch_related("posts","followers").get(id = id)
+        user = User.objects.prefetch_related("posts", "followers").get(id=id)
     except User.DoesNotExist:
         return redirect(reverse("index"))
-    
-    posts = Paginator(user.posts.all().order_by("-created_at"),10)
-    posts_page_number = request.GET.get("posts_page_number",1)
+
+    posts = Paginator(user.posts.all().order_by("-created_at"), 10)
+    if request.user.is_authenticated:
+        for post in posts.object_list:
+            post.liked_by_user = post.likes.filter(user=request.user).exists()
+
+    posts_page_number = request.GET.get("posts_page_number", 1)
     posts = posts.get_page(posts_page_number)
+
     followers = Paginator(user.followers.all(), 10)
-    followers_page_number = request.GET.get("followers_page_number",1)
+    followers_page_number = request.GET.get("followers_page_number", 1)
     followers = followers.get_page(followers_page_number)
-    
-    follows = Followers.objects.filter(user= User.objects.get(pk=id), follower = request.user).exists()
-    
+
+    follows = user.followers.filter(follower=request.user).exists()
+
     context = {
-        "user": user,
+        "user_profile": user,
         "posts": posts,
         "followers": followers,
         "follows": follows
     }
-    
+
     return render(request, "network/profile.html", context)
 
+
+@login_required
 def like_unlike(request):
-    post_id = request.GET.get("id", None)
-    action = request.GET.get("action", None)
-    
-    if post_id == None or action == None:
-        return JsonResponse({
-            "error": "Post id not found or Invalid action"
-        }, 404)
+    if request.method == "GET":
+        post_id = request.GET.get("id")
+        action = request.GET.get("action")
         
-    else:
-        post = Posts.object.get(pk=int(id))
-        post.like += 1
-        likes = Likes.objects.create(user = post.user, fan = request.user)
-        post.save()
-        likes.save()
-        return JsonResponse({
-            "like_count": post.likes,
-            "already_liked": True
-        })
+        if post_id is None or action not in ["like", "unlike"]:
+            return JsonResponse({"error": "Invalid post ID or action."}, status=400)
+
+        try:
+            post = Posts.objects.get(pk=int(post_id))
+        except Posts.DoesNotExist:
+            return JsonResponse({"error": "Post not found."}, status=404)
+
+        if action == "like":
+            if not Likes.objects.filter(user=request.user, post=post).exists():
+                Likes.objects.create(user=request.user, post=post)
+                post.like_count += 1
+                post.save()
+        elif action == "unlike":
+            if Likes.objects.filter(user=request.user, post=post).exists():
+                Likes.objects.filter(user=request.user, post=post).delete()
+                post.like_count -= 1
+                post.save()
+
+        return JsonResponse({"like_count": post.like_count}, status=200)
+    return JsonResponse({"error": "Invalid request method."}, status=405)
+
 
 @login_required
 def following(request):
     if request.method == "GET":
         following = Followers.objects.filter(follower = request.user).values_list("user",flat=True)
         posts = Posts.objects.filter(user__in = following)
+        for post in posts:
+            post.liked_by_user = post.likes.filter(user=request.user).exists()
         posts = Paginator(posts, 10)
         posts_page_number = request.GET.get("page",1)
         posts = posts.get_page(posts_page_number)
@@ -171,14 +194,16 @@ def following(request):
 @login_required
 def follow(request, id):
     user = User.objects.get(pk=id)
+    print(user.username)
     follower = request.user
-    Followers.object.create(user=user, follower= follower)
+    print(follower.username)
+    Followers.objects.create(user=user, follower= follower)
     return redirect(reverse("profile", args = [id]))
 
 @login_required
 def unfollow(request, id):
     user = User.objects.get(pk=id)
     follower = request.user
-    item = Followers.object.filter(user=user, follower= follower)
+    item = Followers.objects.filter(user=user, follower= follower)
     item.delete()
     return redirect(reverse("profile", args = [id]))

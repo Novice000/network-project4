@@ -2,29 +2,33 @@
 
 {% block body %}
 
-    <h2>Register</h2>
+<div class="register-container card card-body">
+    <h2 class="register-title">Register</h2>
 
     {% if message %}
-        <div>{{ message }}</div>
+        <div class="message alert alert-danger">{{ message }}</div>
     {% endif %}
 
     <form action="{% url 'register' %}" method="post">
         {% csrf_token %}
         <div class="form-group">
-            <input class="form-control" autofocus type="text" name="username" placeholder="Username">
+            <input class="form-control form-input" autofocus type="text" name="username" placeholder="Username">
         </div>
         <div class="form-group">
-            <input class="form-control" type="email" name="email" placeholder="Email Address">
+            <input class="form-control form-input" type="email" name="email" placeholder="Email Address">
         </div>
         <div class="form-group">
-            <input class="form-control" type="password" name="password" placeholder="Password">
+            <input class="form-control form-input" type="password" name="password" placeholder="Password">
         </div>
         <div class="form-group">
-            <input class="form-control" type="password" name="confirmation" placeholder="Confirm Password">
+            <input class="form-control form-input" type="password" name="confirmation" placeholder="Confirm Password">
         </div>
-        <input class="btn btn-primary" type="submit" value="Register">
+        <input class="btn btn-primary btn-submit" type="submit" value="Register">
     </form>
 
-    Already have an account? <a href="{% url 'login' %}">Log In here.</a>
+    <div class="login-link">
+        Already have an account? <a href="{% url 'login' %}">Log In here.</a>
+    </div>
+</div>
 
 {% endblock %}

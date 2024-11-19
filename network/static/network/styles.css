@@ -1,0 +1,344 @@
+/* General Reset and Font */
+* {
+    padding: 0;
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-sizing: border-box;
+}
+
+.main-div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 20px;
+    padding-bottom: 240px;
+    background-color: #f9fafb;
+}
+
+.post-item {
+    max-width: 400px;
+    min-width: 280px;
+    margin: 10px;
+    padding: 15px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+    overflow: hidden;
+}
+
+.post-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.card-subtitle.username-link {
+    color: #007bff;
+    font-weight: bold;
+}
+.card-subtitle.username-link:hover {
+    text-decoration: underline;
+    color: #0056b3;
+}
+
+.card-text h3 {
+    color: #333;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.card-text p {
+    color: #555;
+    font-size: 1rem;
+    margin-top: 5px;
+}
+
+.card-subtitle.fw-lighter {
+    color: #888;
+}
+
+.post-utils {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.like_button {
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.like_button:hover {
+    background-color: #007bff;
+    color: white;
+}
+
+.edit-button {
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.edit-button:hover {
+    background-color: #28a745;
+    color: white;
+}
+
+.pagination .page-item .page-link {
+    color: #007bff;
+}
+
+.pagination .page-item .page-link:hover {
+    color: #0056b3;
+    background-color: #e9ecef;
+}
+
+.new-post {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-width: 650px;
+    margin: auto;
+    border: thin solid #ddd;
+    background-color: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(5px);
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px 8px 0 0;
+    padding: 20px;
+}
+
+.new-post label {
+    color: #555;
+    font-weight: bold;
+}
+
+textarea {
+    width: 100%;
+    height: 60px;
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    resize: none;
+    transition: border-color 0.3s;
+}
+
+textarea:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+#submit {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 10px;
+}
+
+#submit:hover {
+    background-color: #0056b3;
+}
+
+a {
+    text-decoration: none;
+    color: gray;
+    transition: color 0.3s;
+}
+
+a:hover {
+    color: #333;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.post-item {
+    animation: fadeIn 0.5s ease-out;
+}
+
+.post-section {
+    flex-grow: 1;
+    background-color: #f9fafb;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.post-meta {
+    font-size: 0.9em;
+    color: #6c757d;
+}
+
+.followers-section {
+    min-width: 250px;
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+
+.pagination {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.pagination .step-links a {
+    color: #007bff;
+    margin: 0 5px;
+}
+
+.pagination .step-links a:hover {
+    text-decoration: underline;
+}
+
+.follower-item {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 10px;
+    transition: background-color 0.3s;
+}
+
+.follower-item:hover {
+    background-color: #f1f3f5;
+}
+
+.main-profile-container {
+    padding-top: 20px;
+}
+
+.profile-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.content-layout {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.login-container {
+    max-width: 500px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.login-title {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.form-input {
+    margin-bottom: 15px;
+    border-radius: 5px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.2);
+}
+
+.btn-submit {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+.message {
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+}
+
+.register-link {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.9rem;
+}
+
+.register-link a {
+    color: #007bff;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.register-link a:hover {
+    color: #0056b3;
+}
+
+/* Container for the registration form */
+.register-container {
+    max-width: 500px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Register title styling */
+.register-title {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Form input styling (same as login for consistency) */
+.form-input {
+    margin-bottom: 15px;
+    border-radius: 5px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.2);
+}
+
+/* Submit button styling (same as login) */
+.btn-submit {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+/* Message styling for error display (same as login) */
+.message {
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+}
+
+/* Login link styling */
+.login-link {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.9rem;
+}
+
+.login-link a {
+    color: #007bff;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.login-link a:hover {
+    color: #0056b3;
+}
