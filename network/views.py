@@ -8,19 +8,23 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 import json
 from django.views.decorators.csrf import csrf_exempt
-
 from .models import Followers, User, Posts, Likes
-
+from django.db.models import Count, Exists, OuterRef, Prefetch
 
 def index(request) -> HttpResponse:
-    posts = Posts.objects.all().order_by("-created_at")
+    posts = Posts.objects.select_related('user').prefetch_related(
+        Prefetch('likes', queryset=Likes.objects.only('user_id'))
+    ).order_by("-created_at")
+    
     if request.user.is_authenticated:
-        for post in posts:
-            post.liked_by_user = post.likes.filter(user=request.user).exists()  # Corrected `like` to `likes`
-
-    posts = Paginator(posts, 10)
+        posts = posts.annotate(
+            liked_by_user=Exists(
+                Likes.objects.filter(user=request.user, post_id=OuterRef('id'))
+            )
+        )
+    paginator = Paginator(posts, 10)
     page_number = request.GET.get("page", 1)
-    posts = posts.get_page(page_number)
+    posts = paginator.get_page(page_number)
     return render(request, "network/index.html", {
         "posts": posts,
         "form": PostForm()
@@ -30,8 +34,6 @@ def index(request) -> HttpResponse:
 
 def login_view(request) -> HttpResponseRedirect | HttpResponse:
     if request.method == "POST":
-
-        # Attempt to sign user in
         username = request.POST["username"]
         password = request.POST["password"]
         user = authenticate(request, username=username, password=password)
@@ -113,27 +115,35 @@ def update(request, id):
                 return JsonResponse({"message":"successfully editted the message"}, status = 302)
         elif request.method == "GET":
             return JsonResponse({"message":"successfully editted the message"}, status = 400)   
-    
+
 def profile(request, id):
     try:
-        user = User.objects.prefetch_related("posts", "followers").get(id=id)
+        user = User.objects.prefetch_related(
+            Prefetch('posts', queryset=Posts.objects.order_by("-created_at")),
+            Prefetch('followers', queryset=Followers.objects.select_related('follower').order_by('follower__username'))
+        ).get(id=id)
     except User.DoesNotExist:
         return redirect(reverse("index"))
 
-    posts = Paginator(user.posts.all().order_by("-created_at"), 10)
     if request.user.is_authenticated:
-        for post in posts.object_list:
-            post.liked_by_user = post.likes.filter(user=request.user).exists()
+        user_posts = user.posts.all().annotate(
+            liked_by_user=Exists(
+                Likes.objects.filter(user=request.user, post_id=OuterRef('id'))
+            )
+        )
+    else:
+        user_posts = user.posts.all()
 
+    paginator = Paginator(user_posts, 10)
     posts_page_number = request.GET.get("posts_page_number", 1)
-    posts = posts.get_page(posts_page_number)
-    follower_queryset =user.followers.all().order_by("follower__username")
-    no_of_followers = follower_queryset.count()
-    followers = Paginator(follower_queryset, 10)
-    followers_page_number = request.GET.get("followers_page_number", 1)
-    followers = followers.get_page(followers_page_number)
+    posts = paginator.get_page(posts_page_number)
 
-    follows = user.followers.filter(follower=request.user).exists()
+    follower_queryset = user.followers.all()
+    no_of_followers = follower_queryset.count()
+    paginator_followers = Paginator(follower_queryset, 10)
+    followers_page_number = request.GET.get("followers_page_number", 1)
+    followers = paginator_followers.get_page(followers_page_number)
+    follows = request.user.is_authenticated and user.followers.filter(follower=request.user).exists()
 
     context = {
         "user_profile": user,
@@ -145,6 +155,7 @@ def profile(request, id):
     }
 
     return render(request, "network/profile.html", context)
+
 
 
 @login_required
