@@ -127,8 +127,9 @@ def profile(request, id):
 
     posts_page_number = request.GET.get("posts_page_number", 1)
     posts = posts.get_page(posts_page_number)
-
-    followers = Paginator(user.followers.all(), 10)
+    follower_queryset =user.followers.all().order_by("follower__username")
+    no_of_followers = follower_queryset.count()
+    followers = Paginator(follower_queryset, 10)
     followers_page_number = request.GET.get("followers_page_number", 1)
     followers = followers.get_page(followers_page_number)
 
@@ -138,7 +139,9 @@ def profile(request, id):
         "user_profile": user,
         "posts": posts,
         "followers": followers,
-        "follows": follows
+        "follows": follows,
+        "no_of_followers": no_of_followers,
+        "form": PostForm()
     }
 
     return render(request, "network/profile.html", context)
@@ -194,9 +197,7 @@ def following(request):
 @login_required
 def follow(request, id):
     user = User.objects.get(pk=id)
-    print(user.username)
     follower = request.user
-    print(follower.username)
     Followers.objects.create(user=user, follower= follower)
     return redirect(reverse("profile", args = [id]))
 

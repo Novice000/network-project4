@@ -5,6 +5,9 @@
   <div class="profile-header">
     <h2>{{ user_profile.username }}</h2>
     <div>
+      {{ no_of_followers }} followers
+    </div>
+    <div>
       {% if user.username != user_profile.username %}
         {% if follows %}
           <a href="{% url 'unfollow' user_profile.id %}">
@@ -26,11 +29,15 @@
     <div class="post-section flex-grow-1">
       <h3>Posts</h3>
 
-      <div class="row row-cols-2 row-cols-md-2">
+      <div class="post-row row row-cols-2 row-cols-md-2">
         {% for post in posts %}
           <div class="post-item">
-            <h4>{{ post.post_title }}</h4>
-            <p>{{ post.post }}</p>
+            <div class="card-text title title-{{ post.id }}">
+              <h4>{{ post.post_title }}</h4>
+            </div>
+            <div class="card-text text-wrap body-{{ post.id }}">
+              <p>{{ post.post }}</p>
+            </div>
             <div class="post-meta">
               <span id="like-count-{{ post.id }}">{{ post.like_count }}</span> Likes
               <br> Created: {{ post.created_at }}
@@ -51,23 +58,35 @@
       </div>
 
       <!-- Pagination for Posts -->
-      <div class="pagination">
-        <span class="step-links">
+      <nav aria-label="Page navigation example">
+        <ul class="pagination justify-content-center">
           {% if posts.has_previous %}
-            <a href="?posts_page_number=1">&laquo; first</a>
-            <a href="?posts_page_number={{ posts.previous_page_number }}">previous</a>
+          <li class="page-item">
+            <!-- Update to use posts_page_number instead of page -->
+            <a class="page-link" href="?posts_page_number={{ posts.previous_page_number }}">Previous</a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" href="?posts_page_number=1">1</a>
+          </li>
           {% endif %}
-
-          <span class="current">
-            Page {{ posts.number }} of {{ posts.paginator.num_pages }}.
-          </span>
-
+          
+          <!-- Current Page Number -->
+          <li class="page-item disabled">
+            <span class="page-link current">{{ posts.number }}</span>
+          </li>
+      
           {% if posts.has_next %}
-            <a href="?posts_page_number={{ posts.next_page_number }}">next</a>
-            <a href="?posts_page_number={{ posts.paginator.num_pages }}">last &raquo;</a>
+          <li class="page-item">
+            <!-- Update to use posts_page_number instead of page -->
+            <a class="page-link" href="?posts_page_number={{ posts.next_page_number }}">Next</a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" href="?posts_page_number={{ posts.paginator.num_pages }}">Last</a>
+          </li>
           {% endif %}
-        </span>
-      </div>
+        </ul>
+      </nav>
+      
     </div>
 
     <!-- Followers Section (Right) -->
@@ -83,23 +102,36 @@
       {% endfor %}
 
       <!-- Pagination for Followers -->
-      <div class="pagination">
-        <span class="step-links">
+      <nav aria-label="Followers page navigation">
+        <ul class="pagination justify-content-center">
           {% if followers.has_previous %}
-            <a href="?followers_page_number=1">&laquo; first</a>
-            <a href="?followers_page_number={{ followers.previous_page_number }}">previous</a>
+          <li class="page-item">
+            <!-- Link to the first page of followers -->
+            <a class="page-link" href="?followers_page_number=1">&laquo; first</a>
+          </li>
+          <li class="page-item">
+            <!-- Link to the previous page of followers -->
+            <a class="page-link" href="?followers_page_number={{ followers.previous_page_number }}">previous</a>
+          </li>
           {% endif %}
-
-          <span class="current">
-            Page {{ followers.number }} of {{ followers.paginator.num_pages }}.
-          </span>
-
+      
+          <!-- Current Page Number -->
+          <li class="page-item disabled">
+            <span class="page-link current">{{ followers.number }} </span>
+          </li>
+      
           {% if followers.has_next %}
-            <a href="?followers_page_number={{ followers.next_page_number }}">next</a>
-            <a href="?followers_page_number={{ followers.paginator.num_pages }}">last &raquo;</a>
+          <li class="page-item">
+            <!-- Link to the next page of followers -->
+            <a class="page-link" href="?followers_page_number={{ followers.next_page_number }}">next</a>
+          </li>
+          <li class="page-item">
+            <!-- Link to the last page of followers -->
+            <a class="page-link" href="?followers_page_number={{ followers.paginator.num_pages }}">last &raquo;</a>
+          </li>
           {% endif %}
-        </span>
-      </div>
+        </ul>
+      </nav>   
     </div>
   </div>
 

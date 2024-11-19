@@ -216,6 +216,7 @@ a:hover {
 
 .main-profile-container {
     padding-top: 20px;
+    padding-bottom: 240px;
 }
 
 .profile-header {
@@ -341,4 +342,8 @@ a:hover {
 
 .login-link a:hover {
     color: #0056b3;
+}
+
+.post-row{
+    padding: auto;
 }

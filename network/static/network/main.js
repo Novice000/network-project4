@@ -85,8 +85,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         titleElement.textContent = titleInput.value;
                         bodyElement.textContent = bodyInput.value;
                         button.textContent = "Edit";
-                        titleInput = '';
-                        bodyInput = '';
+                        titleInput.value = '';
+                        bodyInput.value = '';
 
                         submitButton.removeEventListener("click", savePost);
                         button.removeEventListener("click", savePost);
